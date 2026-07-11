@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudCore OS v2.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+      }
+
+      body {
+        height: 100vh;
+        overflow: hidden;
+        background-image: url('https://i.postimg.cc/3yLzJyKr/Cloud-Core-1-1.jpg');
+        background-size: cover;
+        background-position: center;
+        color: white;
+      }
+
+      .topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        background: rgba(20, 20, 20, 0.25);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        z-index: 9999;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .clock {
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .desktop {
+        padding-top: 90px;
+        padding-left: 25px;
+        display: grid;
+        grid-template-columns: repeat(4, 140px);
+        gap: 25px;
+        align-content: start;
+      }
+
+      .icon {
+        width: 140px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.25s;
+      }
+
+      .icon:hover {
+        transform: scale(1.08);
+      }
+
+      .icon img {
+        width: 90px;
+        height: 90px;
+        display: block;
+        margin: auto;
+        border-radius: 22px;
+        filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.45));
+      }
+
+      .icon p {
+        margin-top: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        text-shadow: 0 0 10px black;
+      }
+
+      .window {
+        position: absolute;
+        display: none;
+        width: 800px;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(25px);
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        animation: windowOpen 0.25s ease;
+      }
+
+      @keyframes windowOpen {
+        from {
+          opacity: 0;
+          transform: scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .window-header {
+        height: 52px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 18px;
+        background: rgba(255, 255, 255, 0.2);
+        cursor: move;
+      }
+
+      .window-title {
+        font-weight: 600;
+        color: #111;
+      }
+
+      .close {
+        width: 18px;
+        height: 18px;
+        border: none;
+        border-radius: 50%;
+        background: #ff5f57;
+        cursor: pointer;
+      }
+
+      .window-content {
+        padding: 20px;
+        color: #111;
+      }
+
+      .browser-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .browser-bar input {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+      }
+
+      .browser-bar button,
+      .app-card button,
+      .window-content button {
+        padding: 12px 18px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      #browserFrame {
+        width: 100%;
+        height: 500px;
+        border: none;
+        border-radius: 10px;
+      }
+
+      #notesArea {
+        width: 100%;
+        height: 400px;
+        padding: 15px;
+        resize: none;
+        border: none;
+        outline: none;
+        border-radius: 12px;
+        background: #f4f4f4;
+      }
+
+      .app-card {
+        padding: 12px;
+        background: #f3f3f3;
+        border-radius: 12px;
+        margin-bottom: 12px;
+      }
+
+      .app-card button {
+        margin-top: 10px;
+        padding: 8px 12px;
+      }
+
+      .wallpaper-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .wallpaper {
+        padding: 10px;
+        background: #f2f2f2;
+        border-radius: 12px;
+        cursor: pointer;
+        text-align: center;
+      }
+
+      .wallpaper img {
+        width: 100%;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .wallpaper p {
+        font-weight: 600;
+        color: #111;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="logo">CloudCore OS</div>
+      <div class="clock" id="clock">Loading...</div>
+    </div>
+
+    <div class="desktop" id="desktop">
+      <div class="icon" onclick="openWindow('browser')">
+        <img src="https://cdn-icons-png.flaticon.com/512/5968/5968866.png" alt="Browser">
+        <p>Browser</p>
+      </div>
+
+      <div class="icon" onclick="openWindow('notes')">
+        <img src="https://cdn-icons-png.flaticon.com/512/8888/8888797.png" alt="Notes">
+        <p>Notes</p>
+      </div>
+
+      <div class="icon" onclick="openWindow('settings')">
+        <img src="https://cdn-icons-png.flaticon.com/512/3524/3524659.png" alt="Settings">
+        <p>Settings</p>
+      </div>
+
+      <div class="icon" onclick="openWindow('store')">
+        <img src="https://cdn-icons-png.flaticon.com/512/3081/3081986.png" alt="Store">
+        <p>Store</p>
+      </div>
+    </div>
+
+    <div class="window" id="browser" style="top:120px;left:220px;">
+      <div class="window-header">
+        <span class="window-title">CloudCore Browser</span>
+        <button class="close" onclick="closeWindow('browser')"></button>
+      </div>
+      <div class="window-content">
+        <div class="browser-bar">
+          <input id="browserInput" placeholder="Search Google, YouTube or Wikipedia">
+          <button onclick="searchBrowser()">Search</button>
+        </div>
+        <iframe id="browserFrame" src="https://www.wikipedia.org"></iframe>
+      </div>
+    </div>
+
+    <div class="window" id="notes" style="top:180px;left:260px;">
+      <div class="window-header">
+        <span class="window-title">Notes</span>
+        <button class="close" onclick="closeWindow('notes')"></button>
+      </div>
+      <div class="window-content">
+        <h2>My Notes</h2>
+        <br>
+        <textarea id="notesArea" placeholder="Write something here..."></textarea>
+      </div>
+    </div>
+
+    <div class="window" id="settings" style="top:220px;left:340px;width:700px;">
+      <div class="window-header">
+        <span class="window-title">Settings</span>
+        <button class="close" onclick="closeWindow('settings')"></button>
+      </div>
+      <div class="window-content">
+        <h2>Wallpapers</h2>
+        <br>
+        <div class="wallpaper-grid">
+          <div class="wallpaper" onclick="setWallpaper('https://i.postimg.cc/3yLzJyKr/Cloud-Core-1-1.jpg')">
+            <img src="https://i.postimg.cc/3yLzJyKr/Cloud-Core-1-1.jpg" alt="CloudCore wallpaper">
+            <p>CloudCore</p>
+          </div>
+
+          <div class="wallpaper" onclick="setWallpaper('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600')">
+            <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=400" alt="Forest wallpaper">
+            <p>Forest</p>
+          </div>
+
+          <div class="wallpaper" onclick="setWallpaper('https://images.unsplash.com/photo-1503264116251-35a269479413?q=80&w=1600')">
+            <img src="https://images.unsplash.com/photo-1503264116251-35a269479413?q=80&w=400" alt="Night City wallpaper">
+            <p>Night City</p>
+          </div>
+
+          <div class="wallpaper" onclick="setWallpaper('https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1600')">
+            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=400" alt="Mountains wallpaper">
+            <p>Mountains</p>
+          </div>
+
+          <div class="wallpaper" onclick="setWallpaper('https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif')">
+            <img src="https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif" alt="Animated Clouds wallpaper">
+            <p>Animated Clouds</p>
+          </div>
+
+          <div class="wallpaper" onclick="setWallpaper('https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif')">
+            <img src="https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif" alt="Space Motion wallpaper">
+            <p>Space Motion</p>
+          </div>
+        </div>
+        <br>
+        <h3>Custom Wallpaper</h3>
+        <br>
+        <input type="file" id="wallpaperUpload" accept="image/*">
+      </div>
+    </div>
+
+    <div class="window" id="store" style="top:260px;left:420px;width:550px;">
+      <div class="window-header">
+        <span class="window-title">CloudCore Store</span>
+        <button class="close" onclick="closeWindow('store')"></button>
+      </div>
+      <div class="window-content">
+        <div class="app-card">
+          <h3>Calculator</h3>
+          <p>Advanced calculator app</p>
+          <button onclick="installCalculator()">Install</button>
+        </div>
+        <div class="app-card">
+          <h3>Journal</h3>
+          <p>Personal journal</p>
+          <button onclick="installJournal()">Install</button>
+        </div>
+        <div class="app-card">
+          <h3>YouTube</h3>
+          <p>Watch videos directly</p>
+          <button onclick="installYouTube()">Install</button>
+        </div>
+        <div class="app-card">
+          <h3>Gallery</h3>
+          <p>View saved images</p>
+          <button onclick="installGallery()">Install</button>
+        </div>
+        <div class="app-card">
+          <h3>Weather</h3>
+          <p>Simple weather app</p>
+          <button onclick="installWeather()">Install</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="window" id="youtube" style="top:130px;left:250px;">
+      <div class="window-header">
+        <span class="window-title">YouTube</span>
+        <button class="close" onclick="closeWindow('youtube')"></button>
+      </div>
+      <div class="window-content">
+        <input id="youtubeInput" placeholder="Paste YouTube Embed URL" style="width:100%;padding:10px;margin-bottom:10px;">
+        <button onclick="loadYouTube()">Load Video</button>
+        <br><br>
+        <iframe id="youtubeFrame" width="100%" height="450" allowfullscreen></iframe>
+      </div>
+    </div>
+
+    <div class="window" id="gallery" style="top:150px;left:280px;width:850px;">
+      <div class="window-header">
+        <span class="window-title">Gallery</span>
+        <button class="close" onclick="closeWindow('gallery')"></button>
+      </div>
+      <div class="window-content">
+        <input type="file" id="galleryUpload" accept="image/*" multiple>
+        <br><br>
+        <div id="galleryGrid"></div>
+      </div>
+    </div>
+
+    <div class="window" id="weather" style="top:180px;left:350px;width:500px;">
+      <div class="window-header">
+        <span class="window-title">Weather</span>
+        <button class="close" onclick="closeWindow('weather')"></button>
+      </div>
+      <div class="window-content">
+        <h2>Weather</h2>
+        <br>
+        <p id="weatherText">Sunny 21°C</p>
+      </div>
+    </div>
+
+    <div class="window" id="calculator" style="top:150px;left:250px;width:420px;">
+      <div class="window-header">
+        <span class="window-title">Calculator</span>
+        <button class="close" onclick="closeWindow('calculator')"></button>
+      </div>
+      <div class="window-content">
+        <input id="calcDisplay" readonly style="width:100%;height:60px;font-size:28px;text-align:center;padding:10px;margin-bottom:15px;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+          <button onclick="calc('7')">7</button><button onclick="calc('8')">8</button><button onclick="calc('9')">9</button><button onclick="calc('/')">÷</button>
+          <button onclick="calc('4')">4</button><button onclick="calc('5')">5</button><button onclick="calc('6')">6</button><button onclick="calc('*')">×</button>
+          <button onclick="calc('1')">1</button><button onclick="calc('2')">2</button><button onclick="calc('3')">3</button><button onclick="calc('-')">−</button>
+          <button onclick="calc('0')">0</button><button onclick="calc('.')">.</button><button onclick="calculateResult()">=</button><button onclick="calc('+')">+</button>
+          <button style="grid-column:span 4;" onclick="clearCalc()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="window" id="journal" style="top:180px;left:300px;width:700px;">
+      <div class="window-header">
+        <span class="window-title">Journal</span>
+        <button class="close" onclick="closeWindow('journal')"></button>
+      </div>
+      <div class="window-content">
+        <textarea id="journalArea" style="width:100%;height:420px;padding:15px;resize:none;border:none;outline:none;border-radius:12px;background:#f4f4f4;"></textarea>
+      </div>
+    </div>
+
+    <script>
+      function createAppIcon(id, label, imageUrl, onOpen) {
+        if (document.getElementById(id)) {
+          return false;
+        }
+
+        const icon = document.createElement('div');
+        icon.className = 'icon';
+        icon.id = id;
+        icon.innerHTML = `
+          <img src="${imageUrl}" alt="${label}">
+          <p>${label}</p>
+        `;
+        icon.onclick = onOpen;
+        document.getElementById('desktop').appendChild(icon);
+        return true;
+      }
+
+      function installCalculator() {
+        if (createAppIcon('calculatorIcon', 'Calculator', 'https://cdn-icons-png.flaticon.com/512/992/992651.png', function () {
+          openWindow('calculator');
+        })) {
+          saveInstalledApps();
+        }
+      }
+
+      function installJournal() {
+        if (createAppIcon('journalIcon', 'Journal', 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png', function () {
+          openWindow('journal');
+        })) {
+          saveInstalledApps();
+        }
+      }
+
+      function installYouTube() {
+        if (createAppIcon('youtubeIcon', 'YouTube', 'https://cdn-icons-png.flaticon.com/512/1384/1384060.png', function () {
+          openWindow('youtube');
+        })) {
+          saveInstalledApps();
+        }
+      }
+
+      function installGallery() {
+        if (createAppIcon('galleryIcon', 'Gallery', 'https://cdn-icons-png.flaticon.com/512/1375/1375106.png', function () {
+          openWindow('gallery');
+        })) {
+          saveInstalledApps();
+        }
+      }
+
+      function installWeather() {
+        if (createAppIcon('weatherIcon', 'Weather', 'https://cdn-icons-png.flaticon.com/512/1163/1163661.png', function () {
+          openWindow('weather');
+        })) {
+          saveInstalledApps();
+        }
+      }
+
+      function saveInstalledApps() {
+        const apps = [];
+        if (document.getElementById('calculatorIcon')) apps.push('calculator');
+        if (document.getElementById('journalIcon')) apps.push('journal');
+        if (document.getElementById('youtubeIcon')) apps.push('youtube');
+        if (document.getElementById('galleryIcon')) apps.push('gallery');
+        if (document.getElementById('weatherIcon')) apps.push('weather');
+        localStorage.setItem('cloudcore_apps', JSON.stringify(apps));
+      }
+
+      function restoreInstalledApps() {
+        const savedApps = JSON.parse(localStorage.getItem('cloudcore_apps') || '[]');
+        savedApps.forEach(function (app) {
+          if (app === 'calculator') installCalculator();
+          if (app === 'journal') installJournal();
+          if (app === 'youtube') installYouTube();
+          if (app === 'gallery') installGallery();
+          if (app === 'weather') installWeather();
+        });
+      }
+
+      function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+      }
+
+      let biggest = 1;
+      let currentWindow = null;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      function openWindow(id) {
+        const win = document.getElementById(id);
+        if (!win) return;
+        win.style.display = 'block';
+        biggest += 1;
+        win.style.zIndex = biggest;
+      }
+
+      function closeWindow(id) {
+        const win = document.getElementById(id);
+        if (win) {
+          win.style.display = 'none';
+        }
+      }
+
+      function setupWindowDragging() {
+        document.querySelectorAll('.window').forEach(function (win) {
+          const header = win.querySelector('.window-header');
+          if (!header) return;
+
+          header.addEventListener('mousedown', function (e) {
+            currentWindow = win;
+            biggest += 1;
+            win.style.zIndex = biggest;
+            offsetX = e.clientX - win.offsetLeft;
+            offsetY = e.clientY - win.offsetTop;
+          });
+        });
+
+        document.addEventListener('mousemove', function (e) {
+          if (!currentWindow) return;
+          currentWindow.style.left = `${e.clientX - offsetX}px`;
+          currentWindow.style.top = `${e.clientY - offsetY}px`;
+        });
+
+        document.addEventListener('mouseup', function () {
+          currentWindow = null;
+        });
+      }
+
+      function setupNotes() {
+        const notesArea = document.getElementById('notesArea');
+        if (!notesArea) return;
+        notesArea.value = localStorage.getItem('cloudcore_notes') || '';
+        notesArea.addEventListener('input', function () {
+          localStorage.setItem('cloudcore_notes', notesArea.value);
+        });
+      }
+
+      function setupJournal() {
+        const journalArea = document.getElementById('journalArea');
+        if (!journalArea) return;
+        journalArea.value = localStorage.getItem('cloudcore_journal') || '';
+        journalArea.addEventListener('input', function () {
+          localStorage.setItem('cloudcore_journal', journalArea.value);
+        });
+      }
+
+      function setWallpaper(url) {
+        document.body.style.backgroundImage = `url('${url}')`;
+        localStorage.setItem('cloudcore_wallpaper', url);
+      }
+
+      function setupWallpaper() {
+        const savedWallpaper = localStorage.getItem('cloudcore_wallpaper');
+        if (savedWallpaper) {
+          setWallpaper(savedWallpaper);
+        }
+
+        const upload = document.getElementById('wallpaperUpload');
+        if (upload) {
+          upload.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (event) {
+              setWallpaper(event.target.result);
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+      }
+
+      function searchBrowser() {
+        const text = document.getElementById('browserInput').value.trim();
+        if (!text) return;
+        document.getElementById('browserFrame').src = `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(text)}`;
+      }
+
+      function loadYouTube() {
+        const url = document.getElementById('youtubeInput').value;
+        document.getElementById('youtubeFrame').src = url;
+      }
+
+      function setupGallery() {
+        const galleryUpload = document.getElementById('galleryUpload');
+        if (!galleryUpload) return;
+
+        galleryUpload.addEventListener('change', function (e) {
+          const files = e.target.files;
+          for (let i = 0; i < files.length; i += 1) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+              const img = document.createElement('img');
+              img.src = event.target.result;
+              img.style.width = '180px';
+              img.style.margin = '10px';
+              img.style.borderRadius = '12px';
+              document.getElementById('galleryGrid').appendChild(img);
+            };
+            reader.readAsDataURL(files[i]);
+          }
+        });
+      }
+
+      function calc(value) {
+        document.getElementById('calcDisplay').value += value;
+      }
+
+      function clearCalc() {
+        document.getElementById('calcDisplay').value = '';
+      }
+
+      function calculateResult() {
+        try {
+          document.getElementById('calcDisplay').value = eval(document.getElementById('calcDisplay').value);
+        } catch (error) {
+          document.getElementById('calcDisplay').value = 'Error';
+        }
+      }
+
+      function init() {
+        updateClock();
+        setInterval(updateClock, 1000);
+        setupWindowDragging();
+        setupNotes();
+        setupJournal();
+        setupWallpaper();
+        setupGallery();
+        restoreInstalledApps();
+      }
+
+      window.addEventListener('load', init);
+    </script>
+  </body>
+</html>
